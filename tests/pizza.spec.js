@@ -176,6 +176,9 @@ test('purchase with login', async ({ page }) => {
   await expect(page.getByText('JWT Pizza - valid{ "vendor')).toBeVisible();
   await expect(page.locator('#hs-jwt-modal-backdrop')).toBeVisible();
   await page.getByRole('button', { name: 'Close' }).click();
+  await expect(page.getByText('JWT Pizza - valid{ "vendor')).not.toBeVisible();
+  await expect(page.locator('#hs-jwt-modal-backdrop')).not.toBeVisible();
+  await expect(page.getByRole('link', { name: 'KC' })).toBeVisible();
   await page.getByRole('link', { name: 'KC' }).click();
   await expect(page.getByRole('heading')).toContainText('Your pizza kitchen');
 });
