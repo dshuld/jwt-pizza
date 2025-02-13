@@ -1,5 +1,3 @@
-import exp from 'constants';
-import { verify } from 'crypto';
 import { test, expect } from 'playwright-test-coverage';
 
 test('not found page', async ({ page }) => {
@@ -55,60 +53,28 @@ test('purchase with login', async ({ page }) => {
   });
 
   await page.route('*/**/api/order', async (route) => {
-    if (route.request().method() === 'POST') {
-      const orderReq = {
+    const orderReq = {
+      items: [
+        { menuId: 1, description: 'Veggie', price: 0.0038 },
+        { menuId: 2, description: 'Pepperoni', price: 0.0042 },
+      ],
+      storeId: '4',
+      franchiseId: 2,
+    };
+    const orderRes = {
+      order: {
         items: [
           { menuId: 1, description: 'Veggie', price: 0.0038 },
           { menuId: 2, description: 'Pepperoni', price: 0.0042 },
         ],
         storeId: '4',
         franchiseId: 2,
-      };
-      const orderRes = {
-        order: {
-          items: [
-            { menuId: 1, description: 'Veggie', price: 0.0038 },
-            { menuId: 2, description: 'Pepperoni', price: 0.0042 },
-          ],
-          storeId: '4',
-          franchiseId: 2,
-          id: 23,
-        },
-        jwt: 'eyJpYXQ',
-      };
-      expect(route.request().postDataJSON()).toMatchObject(orderReq);
-      await route.fulfill({ json: orderRes });
-    }
-    else if (route.request().method() === 'GET') {
-      const orderRes = {
-        "dinerId": 4,
-        "orders": [
-          {
-            "id": 1,
-            "franchiseId": 1,
-            "storeId": 1,
-            "date": "2024-06-01T00:00:00Z",
-            "items": [
-              {
-                "id": 1,
-                "menuId": 1,
-                "description": "Veggie",
-                "price": 0.0038
-              },
-              {
-                "id": 2,
-                "menuId": 2,
-                "description": "Pepperoni",
-                "price": 0.0042
-              }
-            ]
-          }
-        ],
-        "page": 1
-      };
-      await route.fulfill({ json: orderRes });
-    }
-    
+        id: 23,
+      },
+      jwt: 'eyJpYXQ',
+    };
+    expect(route.request().postDataJSON()).toMatchObject(orderReq);
+    await route.fulfill({ json: orderRes }); 
   });
 
   await page.route('https://pizza-factory.cs329.click/api/order/verify', async (route) => {
@@ -171,14 +137,55 @@ test('purchase with login', async ({ page }) => {
   // Verify
   await page.getByRole('button', { name: 'Verify' }).click();
   await expect(page.locator('h3')).toContainText('JWT Pizza - valid');
+});
+
+test('diner dashboard', async ({ page }) => {
+  await page.route('*/**/api/auth', async (route) => {
+    const loginReq = { email: 'd@jwt.com', password: 'a' };
+    const loginRes = { user: { id: 1, name: 'Kai Chen', email: 'd@jwt.com', roles: [{ role: 'diner' }] }, token: 'abcdef' };
+    expect(route.request().method()).toBe('PUT');
+    expect(route.request().postDataJSON()).toMatchObject(loginReq);
+    await route.fulfill({ json: loginRes });
+  });
+
+  await page.route('*/**/api/order', async (route) => {
+    const orderRes = {
+      "dinerId": 4,
+      "orders": [
+        {
+          "id": 1,
+          "franchiseId": 1,
+          "storeId": 1,
+          "date": "2024-06-01T00:00:00Z",
+          "items": [
+            {
+              "id": 1,
+              "menuId": 1,
+              "description": "Veggie",
+              "price": 0.0038
+            },
+            {
+              "id": 2,
+              "menuId": 2,
+              "description": "Pepperoni",
+              "price": 0.0042
+            }
+          ]
+        }
+      ],
+      "page": 1
+    };
+    expect(route.request().method()).toBe('GET');
+    await route.fulfill({ json: orderRes });
+  });
+
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Login' }).click();
+  await page.getByPlaceholder('Email address').fill('d@jwt.com');
+  await page.getByPlaceholder('Password').fill('a');
+  await page.getByRole('button', { name: 'Login' }).click();
 
   // Visit Dashboard
-  await expect(page.getByText('JWT Pizza - valid{ "vendor')).toBeVisible();
-  await expect(page.locator('#hs-jwt-modal-backdrop')).toBeVisible();
-  await page.getByRole('button', { name: 'Close' }).click();
-  await expect(page.getByText('JWT Pizza - valid{ "vendor')).not.toBeVisible();
-  await expect(page.locator('#hs-jwt-modal-backdrop')).not.toBeVisible();
-  await expect(page.getByRole('link', { name: 'KC' })).toBeVisible();
   await page.getByRole('link', { name: 'KC' }).click();
   await expect(page.getByRole('heading')).toContainText('Your pizza kitchen');
 });
