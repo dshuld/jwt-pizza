@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
-      #url: https://pizza.shuldberg.click
+      url: https://pizza.shuldberg.click
     env:
       version: ${{needs.build.outputs.version}}
     steps:
