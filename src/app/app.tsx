@@ -20,7 +20,7 @@ import CloseFranchise from '../views/closeFranchise';
 import CloseStore from '../views/closeStore';
 import Payment from '../views/payment';
 import NotFound from '../views/notFound';
-import Docs from '../views/docs';
+//import Docs from '../views/docs';
 import Breadcrumb from '../components/breadcrumb';
 import { pizzaService } from '../service/service';
 import { Role, User } from '../service/pizzaService';
@@ -84,7 +84,7 @@ export default function App() {
     { title: 'Login', to: '/:subPath?/login', component: <Login setUser={setUser} />, constraints: [loggedOut], display: ['nav'] },
     { title: 'Register', to: '/:subPath?/register', component: <Register setUser={setUser} />, constraints: [loggedOut], display: ['nav'] },
     { title: 'Logout', to: '/:subPath?/logout', component: <Logout setUser={setUser} />, constraints: [loggedIn], display: ['nav'] },
-    { title: 'Docs', to: '/docs/:docType?', component: <Docs />, display: [] },
+    //{ title: 'Docs', to: '/docs/:docType?', component: <Docs />, display: [] },
     { title: 'Opps', to: '*', component: <NotFound />, display: [] },
   ];
 
